@@ -2,8 +2,11 @@ import javax.swing.JFrame;
 
 public class MultiChatClient extends JFrame{
 	
+	protected static MultiChatClientGUI mainMenu;
+	
 	protected int serverPort;
 	protected String serverAddress;
+	
 	
 	public MultiChatClient() {
 		this.serverAddress = "localhost";
@@ -12,6 +15,6 @@ public class MultiChatClient extends JFrame{
 	
 	
 	public static void main(String[] args) {
-		new MultiChatClientGUI();
+		mainMenu = new MultiChatClientGUI();
 	}
 }

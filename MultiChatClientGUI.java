@@ -67,7 +67,8 @@ public class MultiChatClientGUI extends MultiChatClient{
 		b_connect.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				//서버와 연결
+				mainMenu.dispose();
+				//서버와 연결 및 다음 방 리스트화면으로 넘어가기
 			}
 		});
 		b_exit = new JButton("종료하기");
