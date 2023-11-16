@@ -12,6 +12,7 @@ public class ObjectMsg {
 	public final static int MODE_LOGIN = 0x1;
 	public final static int MODE_LOGOUT = 0x2;
 	public final static int MODE_CREATE_ROOM = 0x3;
+	public final static int MODE_JOIN_ROOM = 0x4;
 	public final static int MODE_TX_STRING = 0x10;
 	public final static int MODE_TX_FILE = 0x20;
 	public final static int MODE_TX_IMAGE = 0x40;

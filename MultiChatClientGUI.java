@@ -68,7 +68,9 @@ public class MultiChatClientGUI extends MultiChatClient{
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				mainMenu.dispose();
+				userId = t_userID.getText();
 				//서버와 연결 및 다음 방 리스트화면으로 넘어가기
+				//roomList = new MultiChatClientRoomListGUI();
 			}
 		});
 		b_exit = new JButton("종료하기");
