@@ -9,6 +9,7 @@ public class ObjectMsg {
 	long total_room;
 	ImageIcon Image;
 	
+	public final static int MODE_ID_ERROR = 0x0;
 	public final static int MODE_LOGIN = 0x1;
 	public final static int MODE_LOGOUT = 0x2;
 	public final static int MODE_CREATE_ROOM = 0x3;
