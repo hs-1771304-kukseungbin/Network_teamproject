@@ -1,68 +1,88 @@
-import java.awt.BorderLayout;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.JFrame;
 
-public class hc_ChatClient extends MultiChatClient {
+public class hc_ChatClient extends JFrame{
 	
-	private JTextArea t_user, t_roomArea, t_roomText, t_roomTitle;
-	private JButton b_add;
-
+	protected static hc_ChatClientGUI mainMenu;
+	protected static hc_ChatClientRoomListGUI roomList;
+	protected static hc_ChatClientRoomGUI roomChat;
+	
+	protected static int serverPort;
+	protected static String serverAddress;
+	
+	protected static Socket socket;
+	protected static ObjectOutputStream out;
+	private static Thread receiveThread = null;
+	
+	
 	public hc_ChatClient() {
-		this.setTitle("Hansung Talk");
-		
-		buildGUI();
-		
-		setSize(300,500);
-		
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		
-		setVisible(true);
+		this.serverAddress = "localhost";
+		this.serverPort = 54321;
 	}
 	
-	private void buildGUI() {
-		add(createUserPanel(), BorderLayout.WEST);
-		add(createRoomListPanel(), BorderLayout.CENTER);
+	//¼­¹ö ¿¬°á 
+	public static void connectToServer() {
+		try {
+			socket = new Socket(serverAddress, serverPort);
+			out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+			receiveThread = new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+					while(receiveThread == Thread.currentThread()) {
+						receiveMessages();
+					}
+				}
+			});
+			receiveThread.start();
+		} catch (UnknownHostException e) {
+			System.err.println("¾Ë¼ö¾ø´Â ¼­¹ö" + e.getMessage());
+			System.exit(0);
+		} catch (IOException e) {
+			System.err.println("¼­¹ö ¿¬°á ½ÇÆÐ");
+			System.exit(0);
+		}
 	}
 	
-	private JPanel createUserPanel() {
-		JPanel p = new JPanel(new BorderLayout());
-		
-		
-//		t_user = new JTextArea();
-//		t_user.setEnabled(false);
-		
-		//ìœ ì €ê°€ ì¶”ê°€ë˜ê±°ë‚˜ ì‚­ì œë˜ëŠ” ì‹œì ì— í™”ë©´ì´ ìž¬ìƒì„±ë˜ë„ë¡ í•´ì•¼í•¨
-		
-//		p.add(new JScrollPane(t_user), BorderLayout.CENTER);
-	
-		return p;
+	public static void receiveMessages() {
+		try {
+			ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+			ObjectMsg objectMsg;
+			while((objectMsg=(ObjectMsg)in.readObject()) != null) {
+				if(ObjectMsg.MODE_TX_STRING == objectMsg.mode){
+					roomChat.printDisplay(objectMsg);
+				}
+				else if(ObjectMsg.MODE_TX_FILE == objectMsg.mode) {
+					
+				}
+				else if(ObjectMsg.MODE_TX_IMAGE == objectMsg.mode){
+					roomChat.printDisplayImage(objectMsg);
+				}
+			}
+		} catch (IOException e) {
+			//printDisplay("ÀÐ±â ¿À·ù" + e.getMessage());
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 	}
 	
-	private JPanel createRoomListPanel() {
-		JPanel p = new JPanel(new BorderLayout());
-		
-//		t_roomArea = new JTextArea();
-//		t_roomArea.setEnabled(false);
-		
-		b_add = new JButton("+");
-		//ë°©ì´ ìƒì„±ë˜ëŠ” ì‹œì ì´ë‚˜ ì—†ì–´ì§€ëŠ” ì‹œì ì— í™”ë©´ì— RoomPanelì„ ì¶”ê°€í•´ì•¼í•¨
-//		p.add(new JScrollPane(t_roomArea), BorderLayout.CENTER);
-		p.add(b_add, BorderLayout.SOUTH);
-		
-		return p;
-	}
-	
-	private JPanel createRoomPanel() {
-		JPanel p = new JPanel(new BorderLayout());
-		
-		
-		return p;
+	public void send(ObjectMsg msg) {
+		try {
+			out.writeObject(msg);
+            out.flush();
+		}catch (IOException e) {
+            System.err.println("Å¬¶óÀÌ¾ðÆ® ÀÏ¹Ý Àü¼Û ¿À·ù>" + e.getMessage());
+        }
 	}
 	
 	public static void main(String[] args) {
-		hc_ChatClient client = new hc_ChatClient();
+		mainMenu = new hc_ChatClientGUI();
 	}
 }
