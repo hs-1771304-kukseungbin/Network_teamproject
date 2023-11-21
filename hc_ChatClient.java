@@ -1,5 +1,9 @@
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -19,6 +23,7 @@ public class hc_ChatClient extends JFrame{
 	
 	protected static Socket socket;
 	protected static ObjectOutputStream out;
+	protected static DataOutputStream Dout;
 	private static Thread receiveThread = null;
 	
 	
@@ -32,6 +37,7 @@ public class hc_ChatClient extends JFrame{
 		try {
 			socket = new Socket(serverAddress, serverPort);
 			out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+			Dout = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
 			receiveThread = new Thread(new Runnable() {
 
 				@Override
@@ -54,13 +60,25 @@ public class hc_ChatClient extends JFrame{
 	public static void receiveMessages() {
 		try {
 			ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+			DataInputStream Din = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
 			ObjectMsg objectMsg;
 			while((objectMsg=(ObjectMsg)in.readObject()) != null) {
 				if(ObjectMsg.MODE_TX_STRING == objectMsg.mode){
 					roomChat.printDisplay(objectMsg);
 				}
 				else if(ObjectMsg.MODE_TX_FILE == objectMsg.mode) {
-					
+					String fileName = Din.readUTF();
+					File file = new File(fileName);
+					BufferedOutputStream fbos = new BufferedOutputStream(new FileOutputStream(file));
+						
+					byte[] buffer = new byte[1024];
+					int nRead;
+					while((nRead=in.read(buffer)) != -1) {
+						fbos.write(buffer, 0, nRead);
+					}
+						
+					fbos.close();
+					roomChat.printDisplay(objectMsg);
 				}
 				else if(ObjectMsg.MODE_TX_IMAGE == objectMsg.mode){
 					roomChat.printDisplayImage(objectMsg);

@@ -1,18 +1,27 @@
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -32,6 +41,7 @@ public class hc_ChatClientRoomGUI extends hc_ChatClient{
 	private JButton b_back;
 	private JButton b_send;
 	private JButton b_sendImageIcon;
+	private JButton b_sendFile;
 	private String title;
 	private DefaultStyledDocument document;
 	private SelectImoticon selectImageGUI;
@@ -124,7 +134,6 @@ public class hc_ChatClientRoomGUI extends hc_ChatClient{
 		        int y = (int) location.getY();
 				ImageIcon image = new ImageIcon();
 				selectImageGUI = new SelectImoticon(x,y);
-				//send(new ObjectMsg(ObjectMsg.MODE_TX_IMAGE, mainMenu.userId, null, image));
 			}
 		});
 		
@@ -139,9 +148,62 @@ public class hc_ChatClientRoomGUI extends hc_ChatClient{
 			}
 		});
 		
+		b_sendFile = new JButton("+");
+		b_sendFile.addActionListener(new ActionListener() {
+			JFileChooser chooser = new JFileChooser();
+			String filename;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int ret = chooser.showOpenDialog(hc_ChatClientRoomGUI.this);
+				if(ret != JFileChooser.APPROVE_OPTION) {
+					JOptionPane.showMessageDialog(hc_ChatClientRoomGUI.this, "파일을 선택하지 않았습니다.");
+					return;
+				}
+				filename = chooser.getSelectedFile().getAbsolutePath().strip();
+				if(filename.isEmpty()) return;
+				
+				File file = new File(filename);
+				if(!file.exists()) {
+					System.out.println(">> 파일이 존재하지 않습니다: " + filename + "\n");
+					return;
+				}
+				
+				BufferedInputStream bis = null;
+				try {
+					Dout.writeUTF(file.getName());
+					bis = new BufferedInputStream(new FileInputStream(file));
+					byte[] buffer = new byte[1024];
+					int nRead;
+					while((nRead = bis.read(buffer)) != -1) {
+						Dout.write(buffer, 0, nRead);
+					}
+					
+					Dout.flush();
+				} catch (FileNotFoundException e1) {
+					System.out.println(">> 파일이 존재하지 않습니다:" + e1.getMessage() + "\n");
+					return;
+				} catch (IOException e1) {
+					System.out.println(">> 파일을 읽을 수 없습니다:" + e1.getMessage() + "\n"+ filename);
+					return;
+				} finally {
+					try {
+						if (bis != null) bis.close();
+					} catch (IOException e1) {
+						System.out.println(">> 파일을 닫을 수 없습니다: " + e1.getMessage());
+						return;
+					}
+				}
+			}
+			
+		});
+		
 		p.add(b_sendImageIcon, BorderLayout.WEST);
 		p.add(t_input, BorderLayout.CENTER);
-		p.add(b_send, BorderLayout.EAST);
+		
+		JPanel p_send = new JPanel(new GridLayout(2,1));
+		p_send.add(b_sendFile);
+		p_send.add(b_send);
+		p.add(p_send,BorderLayout.EAST);
 		
 		return p;
 	}
