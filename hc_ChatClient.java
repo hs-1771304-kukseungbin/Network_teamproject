@@ -1,4 +1,5 @@
 import java.io.BufferedInputStream;
+
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -9,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Vector;
 
 import javax.swing.JFrame;
 
@@ -25,6 +27,7 @@ public class hc_ChatClient extends JFrame{
 	protected static ObjectOutputStream out;
 	protected static DataOutputStream Dout;
 	private static Thread receiveThread = null;
+	private static Vector<String> users;
 	
 	
 	public hc_ChatClient() {
@@ -82,6 +85,16 @@ public class hc_ChatClient extends JFrame{
 				}
 				else if(ObjectMsg.MODE_TX_IMAGE == objectMsg.mode){
 					roomChat.printDisplayImage(objectMsg);
+				}
+				else if(ObjectMsg.MODE_LOGIN == objectMsg.mode) {
+					users.add(objectMsg.userName);
+					roomList.updateUserList(users);
+				}
+				else if(ObjectMsg.MODE_LOGOUT == objectMsg.mode) {
+					//roomList.t_user.setText(objectMsg.userName + "\n");
+				}
+				else if(ObjectMsg.MODE_CREATE_ROOM == objectMsg.mode) {
+					//동적으로 buildGUI()사용하여 방마다 각 방이름으로 JPanel을 만들어내야함
 				}
 			}
 		} catch (IOException e) {
