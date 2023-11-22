@@ -71,9 +71,8 @@ public class hc_ChatClientGUI extends hc_ChatClient{
 				connectToServer();
 				mainMenu.setVisible(false);
 				userId = t_userID.getText();
-				send(new ObjectMsg(ObjectMsg.MODE_LOGIN, userId));
-				//서버와 연결 및 다음 방 리스트화면으로 넘어가기
 				roomList = new hc_ChatClientRoomListGUI();
+				send(new ObjectMsg(ObjectMsg.MODE_LOGIN, userId));				
 			}
 		});
 		b_exit = new JButton("종료하기");

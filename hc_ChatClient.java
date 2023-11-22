@@ -60,6 +60,17 @@ public class hc_ChatClient extends JFrame{
 		}
 	}
 	
+	protected void disconnect() {
+		try {
+			receiveThread = null;
+			socket.close();
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public static void receiveMessages() {
 		try {
 			ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
@@ -87,11 +98,10 @@ public class hc_ChatClient extends JFrame{
 					roomChat.printDisplayImage(objectMsg);
 				}
 				else if(ObjectMsg.MODE_LOGIN == objectMsg.mode) {
-					users.add(objectMsg.userName);
-					roomList.updateUserList(users);
+					roomList.updateUserListAdd(objectMsg.userName);
 				}
 				else if(ObjectMsg.MODE_LOGOUT == objectMsg.mode) {
-					//roomList.t_user.setText(objectMsg.userName + "\n");
+					roomList.updateUserListDelete(objectMsg.userName);
 				}
 				else if(ObjectMsg.MODE_CREATE_ROOM == objectMsg.mode) {
 					//동적으로 buildGUI()사용하여 방마다 각 방이름으로 JPanel을 만들어내야함

@@ -357,4 +357,3 @@ public class hc_ChatClientRoomGUI extends hc_ChatClient{
 		}
 	}
 }
-
