@@ -13,7 +13,8 @@ import javax.swing.JTextArea;
 
 public class hc_ChatClientRoomListGUI extends hc_ChatClient {
 	
-	protected JTextArea t_user, t_roomArea, t_roomText, t_roomTitle;
+	protected JTextArea t_user, t_roomText, t_roomTitle;
+	protected JPanel roomPanel;
 	private JButton b_add, b_disconnect;
 	protected Vector<String> users;
 
@@ -69,13 +70,19 @@ public class hc_ChatClientRoomListGUI extends hc_ChatClient {
 		}
 	}
 	
+	public void updateRoomAdd(String roomName) {
+		
+	}
+	
+	public void updateRoomDelete(String roomName) {
+		
+	}
+	
 	private JPanel createRoomListPanel() {
 		JPanel p = new JPanel(new BorderLayout());
 		JPanel b_p = new JPanel(new GridLayout(0,2));
-//		t_roomArea = new JTextArea();
-//		t_roomArea.setEnabled(false);
 		
-		b_add = new JButton("+");
+		// 해당 클라이언트 접속 종료버튼 추가
 		b_disconnect = new JButton("접속종료");
 		b_disconnect.addActionListener(new ActionListener () {
 			@Override
@@ -87,6 +94,7 @@ public class hc_ChatClientRoomListGUI extends hc_ChatClient {
 			}
 		});
 		//방 만들기 모드를 서버에 보내고 해당 방에 접속하기
+		b_add = new JButton("+");
 		b_add.addActionListener(new ActionListener () {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -97,8 +105,9 @@ public class hc_ChatClientRoomListGUI extends hc_ChatClient {
 				roomChat = new hc_ChatClientRoomGUI(title);
 			}
 		});
-		//방이 생성되는 시점이나 없어지는 시점에 화면에 RoomPanel을 추가해야함
-//		p.add(new JScrollPane(t_roomArea), BorderLayout.CENTER);
+		// 해당 방이 만들어 질 때마다 해당 방 영역을 생성해야함
+		roomPanel = new JPanel();
+		p.add(new JScrollPane(roomPanel), BorderLayout.CENTER);
 		b_p.add(b_add);
 		b_p.add(b_disconnect);
 		p.add(b_p, BorderLayout.SOUTH);

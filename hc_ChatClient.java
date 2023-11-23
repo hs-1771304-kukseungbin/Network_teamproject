@@ -27,8 +27,6 @@ public class hc_ChatClient extends JFrame{
 	protected static ObjectOutputStream out;
 	protected static DataOutputStream Dout;
 	private static Thread receiveThread = null;
-	private static Vector<String> users;
-	
 	
 	public hc_ChatClient() {
 		this.serverAddress = "localhost";
@@ -74,13 +72,14 @@ public class hc_ChatClient extends JFrame{
 	public static void receiveMessages() {
 		try {
 			ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
-			DataInputStream Din = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+			
 			ObjectMsg objectMsg;
 			while((objectMsg=(ObjectMsg)in.readObject()) != null) {
 				if(ObjectMsg.MODE_TX_STRING == objectMsg.mode){
 					roomChat.printDisplay(objectMsg);
 				}
 				else if(ObjectMsg.MODE_TX_FILE == objectMsg.mode) {
+					DataInputStream Din = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
 					String fileName = Din.readUTF();
 					File file = new File(fileName);
 					BufferedOutputStream fbos = new BufferedOutputStream(new FileOutputStream(file));
@@ -90,7 +89,7 @@ public class hc_ChatClient extends JFrame{
 					while((nRead=in.read(buffer)) != -1) {
 						fbos.write(buffer, 0, nRead);
 					}
-						
+					
 					fbos.close();
 					roomChat.printDisplay(objectMsg);
 				}
@@ -105,6 +104,9 @@ public class hc_ChatClient extends JFrame{
 				}
 				else if(ObjectMsg.MODE_CREATE_ROOM == objectMsg.mode) {
 					//동적으로 buildGUI()사용하여 방마다 각 방이름으로 JPanel을 만들어내야함
+				}
+				else if(ObjectMsg.MODE_ID_ERROR == objectMsg.mode) {
+					//아이디 중복 체크
 				}
 			}
 		} catch (IOException e) {

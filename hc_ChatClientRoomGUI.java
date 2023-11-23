@@ -51,7 +51,6 @@ public class hc_ChatClientRoomGUI extends hc_ChatClient{
 		this.setTitle("Hansung Talk");
 		this.title = title;
 		buildGUI();
-		
 		setSize(300,500);
 		setLocation(400,0);
 		
@@ -163,11 +162,8 @@ public class hc_ChatClientRoomGUI extends hc_ChatClient{
 				if(filename.isEmpty()) return;
 				
 				File file = new File(filename);
-				if(!file.exists()) {
-					System.out.println(">> 파일이 존재하지 않습니다: " + filename + "\n");
-					return;
-				}
 				
+				send(new ObjectMsg(ObjectMsg.MODE_TX_FILE, mainMenu.userId, title));
 				BufferedInputStream bis = null;
 				try {
 					Dout.writeUTF(file.getName());
@@ -177,7 +173,6 @@ public class hc_ChatClientRoomGUI extends hc_ChatClient{
 					while((nRead = bis.read(buffer)) != -1) {
 						Dout.write(buffer, 0, nRead);
 					}
-					
 					Dout.flush();
 				} catch (FileNotFoundException e1) {
 					System.out.println(">> 파일이 존재하지 않습니다:" + e1.getMessage() + "\n");
