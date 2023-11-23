@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -45,7 +46,6 @@ public class hc_ChatClientRoomGUI extends hc_ChatClient{
 	private String title;
 	private DefaultStyledDocument document;
 	private SelectImoticon selectImageGUI;
-	
 
 	public hc_ChatClientRoomGUI(String title) {
 		this.setTitle("Hansung Talk");
@@ -160,25 +160,23 @@ public class hc_ChatClientRoomGUI extends hc_ChatClient{
 				}
 				filename = chooser.getSelectedFile().getAbsolutePath().strip();
 				if(filename.isEmpty()) return;
-				
 				File file = new File(filename);
-				
-				send(new ObjectMsg(ObjectMsg.MODE_TX_FILE, mainMenu.userId, title));
+				send(new ObjectMsg(ObjectMsg.MODE_TX_FILE, mainMenu.userId, filename));
 				BufferedInputStream bis = null;
 				try {
-					Dout.writeUTF(file.getName());
 					bis = new BufferedInputStream(new FileInputStream(file));
+					
 					byte[] buffer = new byte[1024];
 					int nRead;
 					while((nRead = bis.read(buffer)) != -1) {
-						Dout.write(buffer, 0, nRead);
+						Bos.write(buffer, 0, nRead);
 					}
-					Dout.flush();
+					Bos.flush();
 				} catch (FileNotFoundException e1) {
 					System.out.println(">> 파일이 존재하지 않습니다:" + e1.getMessage() + "\n");
 					return;
 				} catch (IOException e1) {
-					System.out.println(">> 파일을 읽을 수 없습니다:" + e1.getMessage() + "\n"+ filename);
+					System.out.println(">> 파일을 읽을 수 없습니다:" + e1.getMessage() + "\n");
 					return;
 				} finally {
 					try {

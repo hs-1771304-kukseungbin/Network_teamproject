@@ -25,7 +25,7 @@ public class hc_ChatClient extends JFrame{
 	
 	protected static Socket socket;
 	protected static ObjectOutputStream out;
-	protected static DataOutputStream Dout;
+	protected static BufferedOutputStream Bos;
 	private static Thread receiveThread = null;
 	
 	public hc_ChatClient() {
@@ -37,8 +37,8 @@ public class hc_ChatClient extends JFrame{
 	public static void connectToServer() {
 		try {
 			socket = new Socket(serverAddress, serverPort);
-			out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-			Dout = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+			Bos = new BufferedOutputStream(socket.getOutputStream());
+			out = new ObjectOutputStream(Bos);
 			receiveThread = new Thread(new Runnable() {
 
 				@Override
@@ -71,7 +71,8 @@ public class hc_ChatClient extends JFrame{
 	
 	public static void receiveMessages() {
 		try {
-			ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+			BufferedInputStream Bin = new BufferedInputStream(socket.getInputStream());
+			ObjectInputStream in = new ObjectInputStream(Bin);
 			
 			ObjectMsg objectMsg;
 			while((objectMsg=(ObjectMsg)in.readObject()) != null) {
@@ -79,14 +80,13 @@ public class hc_ChatClient extends JFrame{
 					roomChat.printDisplay(objectMsg);
 				}
 				else if(ObjectMsg.MODE_TX_FILE == objectMsg.mode) {
-					DataInputStream Din = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
-					String fileName = Din.readUTF();
+					String fileName = objectMsg.message;
 					File file = new File(fileName);
 					BufferedOutputStream fbos = new BufferedOutputStream(new FileOutputStream(file));
 						
 					byte[] buffer = new byte[1024];
 					int nRead;
-					while((nRead=in.read(buffer)) != -1) {
+					while((nRead=Bin.read(buffer)) != -1) {
 						fbos.write(buffer, 0, nRead);
 					}
 					
