@@ -3,9 +3,13 @@ import java.awt.CardLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Vector;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -16,11 +20,14 @@ public class hc_ChatClientRoomListGUI extends hc_ChatClient {
 	protected JTextArea t_user, t_roomText, t_roomTitle;
 	protected JPanel roomPanel;
 	private JButton b_add, b_disconnect;
+	private JList<String> rooms;
 	protected Vector<String> users;
+	protected DefaultListModel<String> roomName;
 
 	public hc_ChatClientRoomListGUI() {
 		this.setTitle("Hansung Talk");
 		users = new Vector<>();
+		roomName = new DefaultListModel<>();
 		buildGUI();
 		setSize(300,500);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -70,12 +77,12 @@ public class hc_ChatClientRoomListGUI extends hc_ChatClient {
 		}
 	}
 	
-	public void updateRoomAdd(String roomName) {
-		
+	public void updateRoomAdd(String room_Name) {
+		roomName.addElement(room_Name);
 	}
 	
-	public void updateRoomDelete(String roomName) {
-		
+	public void updateRoomDelete(String room_Name) {
+		roomName.removeElement(room_Name);
 	}
 	
 	private JPanel createRoomListPanel() {
@@ -107,6 +114,24 @@ public class hc_ChatClientRoomListGUI extends hc_ChatClient {
 		});
 		// 해당 방이 만들어 질 때마다 해당 방 영역을 생성해야함
 		roomPanel = new JPanel();
+		rooms = new JList<String>(roomName);
+		roomPanel.add(rooms);
+		
+		rooms.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent evt) {
+                JList<String> list = (JList<String>) evt.getSource();
+                if (evt.getClickCount() == 2) {
+                	 int index = list.locationToIndex(evt.getPoint());
+                     if (index >= 0) {
+                    	 String item = list.getModel().getElementAt(index);
+                         send(new ObjectMsg(ObjectMsg.MODE_JOIN_ROOM, mainMenu.userId, null, item));
+                         roomList.setVisible(false);
+         				 roomChat = new hc_ChatClientRoomGUI(item);
+                     }
+                }
+            }
+        });
+		
 		p.add(new JScrollPane(roomPanel), BorderLayout.CENTER);
 		b_p.add(b_add);
 		b_p.add(b_disconnect);

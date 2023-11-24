@@ -165,7 +165,6 @@ public class hc_ChatClientRoomGUI extends hc_ChatClient{
 				BufferedInputStream bis = null;
 				try {
 					bis = new BufferedInputStream(new FileInputStream(file));
-					
 					byte[] buffer = new byte[1024];
 					int nRead;
 					while((nRead = bis.read(buffer)) != -1) {

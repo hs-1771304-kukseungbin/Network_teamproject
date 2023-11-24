@@ -82,15 +82,15 @@ public class hc_ChatClient extends JFrame{
 				else if(ObjectMsg.MODE_TX_FILE == objectMsg.mode) {
 					String fileName = objectMsg.message;
 					File file = new File(fileName);
-					BufferedOutputStream fbos = new BufferedOutputStream(new FileOutputStream(file));
-						
+					FileOutputStream fo = new FileOutputStream(file);
+					
 					byte[] buffer = new byte[1024];
 					int nRead;
 					while((nRead=Bin.read(buffer)) != -1) {
-						fbos.write(buffer, 0, nRead);
+						fo.write(buffer, 0, nRead);
 					}
 					
-					fbos.close();
+					fo.close();
 					roomChat.printDisplay(objectMsg);
 				}
 				else if(ObjectMsg.MODE_TX_IMAGE == objectMsg.mode){
@@ -103,7 +103,7 @@ public class hc_ChatClient extends JFrame{
 					roomList.updateUserListDelete(objectMsg.userName);
 				}
 				else if(ObjectMsg.MODE_CREATE_ROOM == objectMsg.mode) {
-					//동적으로 buildGUI()사용하여 방마다 각 방이름으로 JPanel을 만들어내야함
+					roomList.updateRoomAdd(objectMsg.room_name);
 				}
 				else if(ObjectMsg.MODE_ID_ERROR == objectMsg.mode) {
 					//아이디 중복 체크
