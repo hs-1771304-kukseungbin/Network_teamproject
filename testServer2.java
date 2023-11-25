@@ -79,7 +79,7 @@ public class testServer2 extends JFrame{
    
    private JPanel createControlPanel() {
       JPanel p = new JPanel(new GridLayout(0,3));
-      b_connect = new JButton("ì„œë²„ ì‹œì‘");
+      b_connect = new JButton("¼­¹ö ½ÃÀÛ");
       b_connect.addActionListener(new ActionListener() {
 
          @Override
@@ -103,7 +103,7 @@ public class testServer2 extends JFrame{
          
       });
       
-      b_disconnect = new JButton("ì„œë²„ ì¢…ë£Œ");
+      b_disconnect = new JButton("¼­¹ö Á¾·á");
       b_disconnect.addActionListener(new ActionListener() {
       
          @Override
@@ -113,7 +113,7 @@ public class testServer2 extends JFrame{
          
       });
       
-      b_exit = new JButton("ì¢…ë£Œí•˜ê¸°");
+      b_exit = new JButton("Á¾·áÇÏ±â");
       b_exit.addActionListener(new ActionListener() {
 
          @Override
@@ -139,7 +139,7 @@ public class testServer2 extends JFrame{
          b_disconnect.setEnabled(false);
          b_exit.setEnabled(true);
       }catch(IOException e) {
-         System.err.println("ì„œë²„ ì†Œìº£ ë‹«ê¸° ì˜¤ë¥˜>" + e.getMessage());
+         System.err.println("¼­¹ö ¼ÒÄ¹ ´İ±â ¿À·ù>" + e.getMessage());
          System.exit(-1);
       }
    }
@@ -148,11 +148,11 @@ public class testServer2 extends JFrame{
       Socket clientSocket = null;
       try {
          serverSocket = new ServerSocket(port);
-         t_display.append("ì„œë²„ê°€ ì‹œì‘ë˜ì—ˆìŠµë‹ˆë‹¤.\n");
+         t_display.append("¼­¹ö°¡ ½ÃÀÛµÇ¾ú½À´Ï´Ù.\n");
          users = new Vector<ClientHandler>();
          while (acceptThread == Thread.currentThread()) {
             clientSocket = serverSocket.accept();
-            t_display.append("í´ë¼ì´ì–¸íŠ¸ê°€ ì—°ê²°ë˜ì—ˆìŠµë‹ˆë‹¤.\n");
+            t_display.append("Å¬¶óÀÌ¾ğÆ®°¡ ¿¬°áµÇ¾ú½À´Ï´Ù.\n");
             ClientHandler cHandler = new ClientHandler(clientSocket);
             
             cHandler.start();
@@ -161,7 +161,7 @@ public class testServer2 extends JFrame{
             
          }
       } catch (SocketException e) {
-         printDisplay("ì„œë²„ ì†Œìº£ ì¢…ë£Œ");
+         printDisplay("¼­¹ö ¼ÒÄ¹ Á¾·á");
       } catch (IOException e) {
          e.printStackTrace();
       }
@@ -170,7 +170,7 @@ public class testServer2 extends JFrame{
             if(clientSocket != null) clientSocket.close();
             if(serverSocket != null) serverSocket.close();
          } catch (IOException e) {
-            System.err.println("ì„œë²„ ë‹«ê¸° ì˜¤ë¥˜> " + e.getMessage());
+            System.err.println("¼­¹ö ´İ±â ¿À·ù> " + e.getMessage());
             System.exit(-1);
          }
       }
@@ -197,7 +197,7 @@ public class testServer2 extends JFrame{
             out = new ObjectOutputStream(new BufferedOutputStream(cs.getOutputStream()));
             while((chatMsg = (ObjectMsg)((ObjectInputStream) in).readObject()) != null) {
                if(ObjectMsg.MODE_LOGIN == chatMsg.mode) {
-                  printDisplay(chatMsg.userName + "ì—°ê²° ì„±ê³µ\n");
+                  printDisplay(chatMsg.userName + "¿¬°á ¼º°ø\n");
                   //User List(user name, total_user)
 //                  ObjectMsg userList = new ObjectMsg(ObjectMsg.MODE_LOGIN, chatMsg.userName, "", null, users.size(), 0, "");
                   for(int i = 0; i<users.size(); i++) {
@@ -205,7 +205,7 @@ public class testServer2 extends JFrame{
 					}
                }
                else if(ObjectMsg.MODE_LOGOUT == chatMsg.mode) {
-                  printDisplay(chatMsg.userName + "ì—°ê²° í•´ì œ\n");
+                  printDisplay(chatMsg.userName + "¿¬°á ÇØÁ¦\n");
                   //User List
 //                  ObjectMsg userList = new ObjectMsg(ObjectMsg.MODE_LOGOUT, chatMsg.userName, "", null, users.size(), 0, "");
                   broadcasting(chatMsg);
@@ -220,7 +220,7 @@ public class testServer2 extends JFrame{
             	    File file = new File(filename);
             	    
             	    if(!file.exists()) {
-            	        printDisplay(">> íŒŒì¼ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤: " + filename);
+            	        printDisplay(">> ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù: " + filename);
             	        return;
             	    }
 
@@ -240,24 +240,24 @@ public class testServer2 extends JFrame{
             	            fos.flush();
             	        }
             	        
-            	        printDisplay(">> íŒŒì¼ ì „ì†¡ ì™„ë£Œ: " + filename);
+            	        printDisplay(">> ÆÄÀÏ Àü¼Û ¿Ï·á: " + filename);
             	        
-            	        // ë‹¤ë¥¸ í´ë¼ì´ì–¸íŠ¸ì—ê²Œ íŒŒì¼ ëª¨ë“œ ì „ì†¡
+            	        // ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡°Ô ÆÄÀÏ ¸ğµå Àü¼Û
             	        broadcastingOthers(chatMsg, filename);
-            	        // íŒŒì¼ ë‚´ìš©ì„ ë‹¤ë¥¸ í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ì „ë‹¬
+            	        // ÆÄÀÏ ³»¿ëÀ» ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡°Ô Àü´Ş
             	        redirectStream(bis, filesize);
             	    } catch (FileNotFoundException e1) {
-            	        printDisplay(">> íŒŒì¼ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤:" + e1.getMessage());
+            	        printDisplay(">> ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù:" + e1.getMessage());
             	        return;
             	    } catch (IOException e1) {
-            	        printDisplay(">> íŒŒì¼ ì „ì†¡ ì¤‘ ì˜¤ë¥˜ ë°œìƒ:" + e1.getMessage());
+            	        printDisplay(">> ÆÄÀÏ Àü¼Û Áß ¿À·ù ¹ß»ı:" + e1.getMessage());
             	        return;
             	    } finally {
             	        try {
             	            if (bis != null) bis.close();
             	            if (fos != null) fos.close();
             	        } catch (IOException e) {
-            	            printDisplay(">> íŒŒì¼ ë‹«ê¸° ì˜¤ë¥˜: " + e.getMessage());
+            	            printDisplay(">> ÆÄÀÏ ´İ±â ¿À·ù: " + e.getMessage());
             	            return;
             	        }
             	    }
@@ -265,34 +265,42 @@ public class testServer2 extends JFrame{
 
                else if(ObjectMsg.MODE_TX_IMAGE == chatMsg.mode){
                   printDisplay(chatMsg.userName + ": " + chatMsg.message);
-                  broadcasting(chatMsg);
+                  roombroadcasting(chatMsg);
                }
                else if(ObjectMsg.MODE_CREATE_ROOM == chatMsg.mode) {
-                  printDisplay(chatMsg.userName + "ê°€" + chatMsg.room_name + "ë°© ìƒì„±");
-                  ServerHandler sh = new ServerHandler(chatMsg.userName);
+                  printDisplay(chatMsg.userName + "°¡" + chatMsg.room_name + "¹æ »ı¼º");
+                  ServerHandler sh = new ServerHandler(chatMsg.room_name);
                   rooms.add(sh);
                   ObjectMsg roomInfo = new ObjectMsg(ObjectMsg.MODE_CREATE_ROOM, chatMsg.userName, "", null, users.size(), rooms.size(), chatMsg.room_name);
                   broadcasting(roomInfo);
                   //Room List
                }
                else if(ObjectMsg.MODE_JOIN_ROOM == chatMsg.mode) {
-                  printDisplay(chatMsg.userName + "ê°€" + chatMsg.room_name + "ë°© ì ‘ì†");
-                  ServerHandler sh = new ServerHandler(chatMsg.userName);
-                
+                  printDisplay(chatMsg.userName + "°¡" + chatMsg.room_name + "¹æ Á¢¼Ó");
+                  ServerHandler sh = new ServerHandler(chatMsg.room_name);
+                  if(this.currentRoom != null) { // ÇöÀç ¹æÀÌ nullÀÌ ¾Æ´Ï¶ó¸é, Áï, ¾î¶² ¹æ¿¡ µé¾î¿Í ÀÖ´Ù¸é
+                      this.currentRoom.quitRoom(this); // ÇöÀç ¹æ¿¡¼­ ³ª°¡°Ô Ã³¸®ÇÕ´Ï´Ù.
+                  }
+
                   for(ServerHandler room : rooms) {
                       if(room.getRoomName().equals(chatMsg.room_name)) {
                           room.addRoom(this);
-                          this.currentRoom = room;  // ì—¬ê¸°ì— currentRoomì„ ì„¤ì •í•´ì¤ë‹ˆë‹¤.
+                          this.currentRoom = room;  // ¿©±â¿¡ currentRoomÀ» ¼³Á¤ÇØÁİ´Ï´Ù.
                           break;
                       }
                   }
                   ObjectMsg roomInfo = new ObjectMsg(ObjectMsg.MODE_JOIN_ROOM, chatMsg.userName, "", null, users.size(), rooms.size(), chatMsg.room_name);
                   broadcasting(roomInfo);
                }
+               else if(ObjectMsg.MODE_OUT_ROOM == chatMsg.mode) {
+                   printDisplay(chatMsg.userName + "°¡" + chatMsg.room_name + "¹æ Á¢¼ÓÁ¾·á");
+                   ServerHandler sh = new ServerHandler(chatMsg.room_name);
+                   sh.quitRoom(this);
+               }
             }
             users.removeElement(this);
          } catch (IOException e) {
-            printDisplay("ì„œë²„ ì½ê¸° ì˜¤ë¥˜>" + e.getMessage());
+            printDisplay("¼­¹ö ÀĞ±â ¿À·ù>" + e.getMessage());
          } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -311,7 +319,7 @@ public class testServer2 extends JFrame{
             out.writeObject(cmsg);
             out.flush();
          } catch (IOException e) {
-            System.err.println("í´ë¼ì´ì–¸íŠ¸ ì¼ë°˜ ì „ì†¡ ì˜¤ë¥˜>" + e.getMessage());
+            System.err.println("Å¬¶óÀÌ¾ğÆ® ÀÏ¹İ Àü¼Û ¿À·ù>" + e.getMessage());
          }
       }
       
@@ -373,18 +381,24 @@ public class testServer2 extends JFrame{
 	        this.ch.add(client);
 	    }
 	   
+	   void quitRoom(ClientHandler client) {	   
+		   int index = this.ch.indexOf(client);
+		   if(index != -1) {
+			   this.ch.remove(index);
+		   }
+	   }
+	   
 	   void sendMessage(ObjectMsg cmsg) {
-		    for(ClientHandler client : ch) {
-		        try {
-		            client.out.writeObject(new ObjectMsg(ObjectMsg.MODE_TX_STRING, cmsg.userName, cmsg.message));
-		            client.out.flush();
+		    for(int i = 0; i < ch.size(); i++) {
+	    		try {
+		        	ch.get(i).out.writeObject(cmsg);
+		        	ch.get(i).out.flush();
 		        } catch (IOException e) {
-		            System.err.println("í´ë¼ì´ì–¸íŠ¸ ì¼ë°˜ ì „ì†¡ ì˜¤ë¥˜>" + e.getMessage());
+		            System.err.println("Å¬¶óÀÌ¾ğÆ® ÀÏ¹İ Àü¼Û ¿À·ù>" + e.getMessage());
 		        }
 		    }
 		}
    }
-   
    
    private void printDisplay(String msg) {
       t_display.append(msg + "\n");

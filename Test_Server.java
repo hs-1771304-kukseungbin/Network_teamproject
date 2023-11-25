@@ -189,7 +189,7 @@ public class Test_Server extends JFrame{
 				Bout = new BufferedOutputStream(cs.getOutputStream());
 				in = new ObjectInputStream(Bin);
 				out = new ObjectOutputStream(Bout);
-				
+				File file = null;
 				while((chatMsg = (ObjectMsg)((ObjectInputStream) in).readObject()) != null) {
 					if(ObjectMsg.MODE_LOGIN == chatMsg.mode) {
 						printDisplay(chatMsg.userName + "연결 성공\n");
@@ -208,42 +208,12 @@ public class Test_Server extends JFrame{
 					}
 					else if(ObjectMsg.MODE_TX_FILE == chatMsg.mode) {
 						String filename = chatMsg.message;
-						File file = new File(filename);
+						file = new File(filename);
 						if(!file.exists()) {
 							System.out.println(">> 파일이 존재하지 않습니다: " + filename + "\n");
 							return;
 						}
-
-						BufferedInputStream bis = null;
-						try {
-							
-							bis = new BufferedInputStream(new FileInputStream(file));
-							Bout = new BufferedOutputStream(new FileOutputStream(file));
-							
-							byte[] buffer = new byte[1024];
-							int nRead;
-							while((nRead=Bin.read(buffer)) != -1) {
-								Bout.write(buffer, 0, nRead);
-							}
-							sendMessage(new ObjectMsg(ObjectMsg.MODE_TX_FILE, chatMsg.userName, filename));
-							Bout.flush();
-							printDisplay(">> 전송을 완료했습니다: " + filename);
-
-						} catch (FileNotFoundException e1) {
-							System.out.println(">> 파일이 존재하지 않습니다:" + e1.getMessage() + "\n");
-							return;
-						} catch (IOException e1) {
-							System.out.println(">> 파일을 읽을 수 없습니다:" + e1.getMessage() + "\n"+ filename);
-							return;
-						} finally {
-							try {
-								if (bis != null) bis.close();
-							} catch (IOException e) {
-								printDisplay(">> 파일을 닫을 수 없습니다: " + e.getMessage());
-								return;
-							}
-						}
-						
+						sendMessage(new ObjectMsg(ObjectMsg.MODE_TX_FILE, chatMsg.userName, file.getName()));
 					}
 					else if(ObjectMsg.MODE_TX_IMAGE == chatMsg.mode){
 						printDisplay(chatMsg.userName + ": " + chatMsg.Image);
@@ -255,20 +225,34 @@ public class Test_Server extends JFrame{
 					else if(ObjectMsg.MODE_JOIN_ROOM == chatMsg.mode) {
 						printDisplay(chatMsg.userName + "가" + chatMsg.room_name + "방 접속");
 					}
+					if(file != null) {
+						Bin = new BufferedInputStream(cs.getInputStream());
+						Bout = new BufferedOutputStream(cs.getOutputStream());
+						try {
+							byte[] buffer = new byte[1024];
+							int nRead;
+							while((nRead=Bin.read(buffer)) != -1) {
+								Bout.write(buffer, 0, nRead);
+							}
+							Bout.flush();
+							printDisplay(">> 전송을 완료했습니다: " + file.getName());
+							
+						} catch (FileNotFoundException e1) {
+							System.out.println(">> 파일이 존재하지 않습니다:" + e1.getMessage() + "\n");
+							return;
+						} catch (IOException e1) {
+							System.out.println(">> 파일을 읽을 수 없습니다:" + e1.getMessage() + "\n"+ file.getName());
+							return;
+						}
+					}
 				}
 				users.removeElement(this);
+				
 			} catch (IOException e) {
 				printDisplay("서버 읽기 오류>" + e.getMessage());
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}finally {
-				try {
-					cs.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}	
 			}
 		}
 		
@@ -286,7 +270,6 @@ public class Test_Server extends JFrame{
 				users.get(i).sendMessage(cmsg);
 			}
 		}
-		
 
 		@Override
 		public void run() {
