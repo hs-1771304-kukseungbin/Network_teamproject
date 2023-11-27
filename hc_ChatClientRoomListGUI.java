@@ -54,9 +54,16 @@ public class hc_ChatClientRoomListGUI extends hc_ChatClient {
 	
 	public void updateUserListAdd(String user) {
 		//유저 중복 불가능하게 처리
+		boolean isUser = true;
 		if(users.size() == 0) users.add(user);
 		for(int i = 0; i<users.size(); i++) {
-			if(!user.equals(users.get(i))) users.add(user);
+			if(users.get(i).equals(user)) {
+				isUser = false;
+				break;
+			}
+		}
+		if(isUser) {
+			users.add(user);
 		}
 		
 		t_user.setText("-- 유저 목록 -- \n");

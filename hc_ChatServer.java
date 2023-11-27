@@ -198,13 +198,11 @@ public class hc_ChatServer extends JFrame {
 				while ((chatMsg = (ObjectMsg) (in).readObject()) != null) {
 					if (ObjectMsg.MODE_LOGIN == chatMsg.mode) {
 						printDisplay(chatMsg.userName + "연결 성공\n");
-						for (int i = 0; i < users.size(); i++) {
-							broadcasting(new ObjectMsg(ObjectMsg.MODE_LOGIN, users.get(i).chatMsg.userName));
-						}
-						//수정 필요 방이 있으면 방 생성이전에 접속한 유저도 방이 만들어져야 함
+						broadcasting(chatMsg);
+						// 수정 필요 방이 있으면 방 생성이전에 접속한 유저도 방이 만들어져야 함
 						if (currentRoom != null) {
 							for (int i = 0; i < rooms.size(); i++) {
-								broadcasting(new ObjectMsg(ObjectMsg.MODE_CREATE_ROOM, "", "", null, users.size(),rooms.size(), rooms.get(i).roomName));
+								broadcasting(new ObjectMsg(ObjectMsg.MODE_CREATE_ROOM, "", "", null, users.size(), rooms.size(), rooms.get(i).roomName));
 							}
 						}
 					} else if (ObjectMsg.MODE_LOGOUT == chatMsg.mode) {
@@ -218,7 +216,8 @@ public class hc_ChatServer extends JFrame {
 						long size = chatMsg.fileSize;
 						String filename = chatMsg.message;
 						File file = new File(filename);
-						sendMessage(new ObjectMsg(ObjectMsg.MODE_TX_FILE, chatMsg.userName, file.getName(), null, size, 0, null));
+						sendMessage(new ObjectMsg(ObjectMsg.MODE_TX_FILE, chatMsg.userName, file.getName(), null, size,
+								0, null));
 						try {
 							byte[] buffer = new byte[1024];
 							int nRead = 0;
@@ -227,11 +226,11 @@ public class hc_ChatServer extends JFrame {
 								size -= nRead;
 								Bout.write(buffer, 0, nRead);
 							}
+							Bout.flush();
 							printDisplay(chatMsg.userName + ": 파일 전송 완료 >> " + filename);
-							//해당 파일 전송이 끝났음을 보냄
-							sendMessage(new ObjectMsg(ObjectMsg.MODE_TX_FILE, chatMsg.userName, file.getName(), null, -1, 0, null));
+							// 해당 파일 전송이 끝났음을 보냄
 							// 다른 클라이언트에게 파일 모드 전송
-							//broadcastingOthers(chatMsg, filename);
+							// broadcastingOthers(chatMsg, filename);
 							// 파일 내용을 다른 클라이언트에게 전달
 							// redirectStream(bis, filesize);
 						} catch (FileNotFoundException e1) {
@@ -250,7 +249,8 @@ public class hc_ChatServer extends JFrame {
 						printDisplay(chatMsg.userName + "가" + chatMsg.room_name + "방 생성");
 						ServerHandler sh = new ServerHandler(chatMsg.room_name);
 						rooms.add(sh);
-						ObjectMsg roomInfo = new ObjectMsg(ObjectMsg.MODE_CREATE_ROOM, chatMsg.userName, "", null, users.size(), rooms.size(), chatMsg.room_name);
+						ObjectMsg roomInfo = new ObjectMsg(ObjectMsg.MODE_CREATE_ROOM, chatMsg.userName, "", null,
+								users.size(), rooms.size(), chatMsg.room_name);
 						broadcasting(roomInfo);
 						// Room List
 					} else if (ObjectMsg.MODE_JOIN_ROOM == chatMsg.mode) {
@@ -313,24 +313,18 @@ public class hc_ChatServer extends JFrame {
 			}
 		}
 
-		void broadcastingOthers(ObjectMsg cmsg, String filename) {
+		void redirectStream(long size) throws IOException {
 			for (int i = 0; i < users.size(); i++) {
 				ClientHandler currentClient = null;
 				if (users.get(i) != currentClient) {
-					users.get(i).sendMessage(new ObjectMsg(ObjectMsg.MODE_TX_FILE, cmsg.userName, filename));
+					byte[] buffer = new byte[1024];
+					int nRead = 0;
+					while (size > 0) {
+						nRead = users.get(i).Bin.read(buffer);
+						size -= nRead;
+						Bout.write(buffer, 0, nRead);
+					}
 				}
-			}
-		}
-
-		void redirectStream(BufferedInputStream bis, long filesize) throws IOException {
-			byte[] buffer = new byte[1024];
-			int len;
-			long total = 0;
-
-			while ((len = bis.read(buffer)) > 0 && total < filesize) {
-				Bout.write(buffer, 0, len);
-				Bout.flush();
-				total += len;
 			}
 		}
 
