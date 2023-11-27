@@ -33,280 +33,360 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-public class hc_ChatServer extends JFrame{
-   private int port;
-   private ServerSocket serverSocket = null;
-   private JTextArea t_display;
-   private JButton b_exit;
-   private JButton b_connect;
-   private JButton b_disconnect;
-   private Thread acceptThread = null;
-   private Vector<ClientHandler> users;
-   private Vector<ServerHandler> rooms;
-   
-   int count = 0;
-   
-   
-   public hc_ChatServer(int port) {
-      super("Hansung Chat Server");
-      buildGUI();
-      
-      setSize(400,300);
-      setLocation(800,300);
-      setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-      
-      setVisible(true);
-      this.port = port;
-      
-      rooms = new Vector<ServerHandler>();
-   }
-   
-   private void buildGUI() {
-      add(createDisplayPanel(),BorderLayout.CENTER);
-      
-      JPanel p_input = new JPanel(new GridLayout(1,0));
-      p_input.add(createControlPanel());
-      add(p_input,BorderLayout.SOUTH);
-   }
-   
-   private JPanel createDisplayPanel() {
-      JPanel p = new JPanel(new BorderLayout());
-      t_display = new JTextArea();
-      t_display.setEditable(false);
-      p.add(new JScrollPane(t_display),BorderLayout.CENTER);
-      return p;
-   }
-   
-   private JPanel createControlPanel() {
-      JPanel p = new JPanel(new GridLayout(0,3));
-      b_connect = new JButton("ÏÑúÎ≤Ñ ÏãúÏûë");
-      b_connect.addActionListener(new ActionListener() {
+public class hc_ChatServer extends JFrame {
+	private int port;
+	private ServerSocket serverSocket = null;
+	private JTextArea t_display;
+	private JButton b_exit;
+	private JButton b_connect;
+	private JButton b_disconnect;
+	private Thread acceptThread = null;
+	private Vector<ClientHandler> users;
+	private Vector<ServerHandler> rooms;
 
-         @Override
-         public void actionPerformed(ActionEvent e) {
-            
-            acceptThread = new Thread(new Runnable() {
+	int count = 0;
 
-               @Override
-               public void run() {
-                  startServer();
-               }
-               
-            });
-            acceptThread.start();
-            
-            b_connect.setEnabled(false);
-            b_disconnect.setEnabled(true);
-            
-            b_exit.setEnabled(false);
-         }
-         
-      });
-      
-      b_disconnect = new JButton("ÏÑúÎ≤Ñ Ï¢ÖÎ£å");
-      b_disconnect.addActionListener(new ActionListener() {
-      
-         @Override
-         public void actionPerformed(ActionEvent e) {
-            disconnect();
-         }
-         
-      });
-      
-      b_exit = new JButton("Ï¢ÖÎ£åÌïòÍ∏∞");
-      b_exit.addActionListener(new ActionListener() {
+	public hc_ChatServer(int port) {
+		super("Hansung Chat Server");
+		buildGUI();
 
-         @Override
-         public void actionPerformed(ActionEvent e) {
-            disconnect();
-            System.exit(0);
-         }
-      });
-      
-      p.add(b_connect);
-      p.add(b_disconnect);
-      p.add(b_exit);
-      
-      b_disconnect.setEnabled(false);
-      return p;
-   }
-   
-   private void disconnect() {
-      try {
-         acceptThread = null;
-         serverSocket.close();
-         b_connect.setEnabled(true);
-         b_disconnect.setEnabled(false);
-         b_exit.setEnabled(true);
-      }catch(IOException e) {
-         System.err.println("ÏÑúÎ≤Ñ ÏÜåÏ∫£ Îã´Í∏∞ Ïò§Î•ò>" + e.getMessage());
-         System.exit(-1);
-      }
-   }
-   
-   public void startServer() {
-      Socket clientSocket = null;
-      try {
-         serverSocket = new ServerSocket(port);
-         t_display.append("ÏÑúÎ≤ÑÍ∞Ä ÏãúÏûëÎêòÏóàÏäµÎãàÎã§.\n");
-         users = new Vector<ClientHandler>();
-         while (acceptThread == Thread.currentThread()) {
-            clientSocket = serverSocket.accept();
-            t_display.append("ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Í∞Ä Ïó∞Í≤∞ÎêòÏóàÏäµÎãàÎã§.\n");
-            ClientHandler cHandler = new ClientHandler(clientSocket);
-            
-            cHandler.start();
-            users.add(cHandler);
-            
-            
-         }
-      } catch (SocketException e) {
-         printDisplay("ÏÑúÎ≤Ñ ÏÜåÏ∫£ Ï¢ÖÎ£å");
-      } catch (IOException e) {
-         e.printStackTrace();
-      }
-      finally {
-         try {
-            if(clientSocket != null) clientSocket.close();
-            if(serverSocket != null) serverSocket.close();
-         } catch (IOException e) {
-            System.err.println("ÏÑúÎ≤Ñ Îã´Í∏∞ Ïò§Î•ò> " + e.getMessage());
-            System.exit(-1);
-         }
-      }
-   }
-   
-   
-   private class ClientHandler extends Thread {
-      private Socket clientSocket;
-      private ObjectOutputStream out;
-      private ObjectInputStream in;
-      
-      public ClientHandler(Socket clientSocket) {
-         this.clientSocket = clientSocket;
-      }
-      
-      void receiveMessages(Socket cs) {   
-         try {
-            in = new ObjectInputStream(new BufferedInputStream(cs.getInputStream()));
-            out = new ObjectOutputStream(new BufferedOutputStream(cs.getOutputStream()));
-            ObjectMsg chatMsg;
-            while((chatMsg = (ObjectMsg)((ObjectInputStream) in).readObject()) != null) {
-               if(ObjectMsg.MODE_LOGIN == chatMsg.mode) {
-                  printDisplay(chatMsg.userName + "Ïó∞Í≤∞ ÏÑ±Í≥µ\n");
-                  //User List(user name, total_user)
-                  ObjectMsg userList = new ObjectMsg(ObjectMsg.MODE_LOGIN, chatMsg.userName, "", null, users.size(), 0, "");
-                  broadcasting(userList);
-               }
-               else if(ObjectMsg.MODE_LOGOUT == chatMsg.mode) {
-                  printDisplay(chatMsg.userName + "Ïó∞Í≤∞ Ìï¥Ï†ú\n");
-                  //User List
-                  ObjectMsg userList = new ObjectMsg(ObjectMsg.MODE_LOGOUT, chatMsg.userName, "", null, users.size(), 0, "");
-                  broadcasting(userList);
-                  break;
-               }
-               else if(ObjectMsg.MODE_TX_STRING == chatMsg.mode){
-                  printDisplay(chatMsg.userName + ": " + chatMsg.message);
-                  broadcasting(chatMsg);
-               }
-               else if(ObjectMsg.MODE_TX_FILE == chatMsg.mode) {
-                  //**
-               }
-               else if(ObjectMsg.MODE_TX_IMAGE == chatMsg.mode){
-                  printDisplay(chatMsg.userName + ": " + chatMsg.message);
-                  broadcasting(chatMsg);
-               }
-               else if(ObjectMsg.MODE_CREATE_ROOM == chatMsg.mode) {
-                  printDisplay(chatMsg.userName + "Í∞Ä" + chatMsg.room_name + "Î∞© ÏÉùÏÑ±");
-                  ServerHandler sh = new ServerHandler(chatMsg.userName);
-                  rooms.add(sh);
-                  ObjectMsg roomInfo = new ObjectMsg(ObjectMsg.MODE_CREATE_ROOM, chatMsg.userName, "", null, users.size(), rooms.size(), chatMsg.room_name);
-                  broadcasting(roomInfo);
-                  //Room List
-               }
-               else if(ObjectMsg.MODE_JOIN_ROOM == chatMsg.mode) {
-                  printDisplay(chatMsg.userName + "Í∞Ä" + chatMsg.room_name + "Î∞© Ï†ëÏÜç");
-                  ServerHandler sh = new ServerHandler(chatMsg.userName);
-                  
-                  for(ServerHandler room : rooms) {
-                	  if(room.getRoomName().equals(chatMsg.room_name)) {
-                		  room.addRoom(this);
-                		  break;
-                	  }
-                  }
-                  ObjectMsg roomInfo = new ObjectMsg(ObjectMsg.MODE_JOIN_ROOM, chatMsg.userName, "", null, users.size(), rooms.size(), chatMsg.room_name);
-                  broadcasting(roomInfo);
-               }
-            }
-            users.removeElement(this);
-         } catch (IOException e) {
-            printDisplay("ÏÑúÎ≤Ñ ÏùΩÍ∏∞ Ïò§Î•ò>" + e.getMessage());
-         } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-         }finally {
-            try {
-               cs.close();
-            } catch (IOException e) {
-               // TODO Auto-generated catch block
-               e.printStackTrace();
-            }   
-         }
-      }
-      
-      void sendMessage(ObjectMsg cmsg) {
-         try {
-            out.writeObject(cmsg);
-            out.flush();
-         } catch (IOException e) {
-            System.err.println("ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ ÏùºÎ∞ò Ï†ÑÏÜ° Ïò§Î•ò>" + e.getMessage());
-         }
-      }
-      
-      void broadcasting(ObjectMsg cmsg) {
-         for(int i = 0; i<users.size();i++) {
-            users.get(i).sendMessage(cmsg);
-         }
-      }
-      
+		setSize(400, 300);
+		setLocation(800, 300);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-      @Override
-      public void run() {
-         receiveMessages(clientSocket);
-      }
-      
-   }
-   
-   private class ServerHandler {
-	   
-	   private Vector<ClientHandler> ch;
-	   private String roomName;
-	   
-	   public ServerHandler(String roomName) {
-	        this.roomName = roomName;
-	        this.ch = new Vector<ClientHandler>();
-	    }
-	   
-	   public String getRoomName() {
-		   return this.roomName;
-	   }
-	   
-	   public void addRoom(ClientHandler client) {
-	        this.ch.add(client);
-	    }
-	   
-   }
-   
-   
-   private void printDisplay(String msg) {
-      t_display.append(msg + "\n");
-      t_display.setCaretPosition(t_display.getDocument().getLength());
-   }
-   
-   public static void main(String[] args) {
-      int port = 54321;
+		setVisible(true);
+		this.port = port;
 
-      hc_ChatServer server = new hc_ChatServer(port);
-      //server.startServer();
-   }
+		rooms = new Vector<ServerHandler>();
+	}
+
+	private void buildGUI() {
+		add(createDisplayPanel(), BorderLayout.CENTER);
+
+		JPanel p_input = new JPanel(new GridLayout(1, 0));
+		p_input.add(createControlPanel());
+		add(p_input, BorderLayout.SOUTH);
+	}
+
+	private JPanel createDisplayPanel() {
+		JPanel p = new JPanel(new BorderLayout());
+		t_display = new JTextArea();
+		t_display.setEditable(false);
+		p.add(new JScrollPane(t_display), BorderLayout.CENTER);
+		return p;
+	}
+
+	private JPanel createControlPanel() {
+		JPanel p = new JPanel(new GridLayout(0, 3));
+		b_connect = new JButton("º≠πˆ Ω√¿€");
+		b_connect.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+				acceptThread = new Thread(new Runnable() {
+
+					@Override
+					public void run() {
+						startServer();
+					}
+
+				});
+				acceptThread.start();
+
+				b_connect.setEnabled(false);
+				b_disconnect.setEnabled(true);
+
+				b_exit.setEnabled(false);
+			}
+
+		});
+
+		b_disconnect = new JButton("º≠πˆ ¡æ∑·");
+		b_disconnect.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				disconnect();
+			}
+
+		});
+
+		b_exit = new JButton("¡æ∑·«œ±‚");
+		b_exit.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				disconnect();
+				System.exit(0);
+			}
+		});
+
+		p.add(b_connect);
+		p.add(b_disconnect);
+		p.add(b_exit);
+
+		b_disconnect.setEnabled(false);
+		return p;
+	}
+
+	private void disconnect() {
+		try {
+			acceptThread = null;
+			serverSocket.close();
+			b_connect.setEnabled(true);
+			b_disconnect.setEnabled(false);
+			b_exit.setEnabled(true);
+		} catch (IOException e) {
+			System.err.println("º≠πˆ º“ƒπ ¥›±‚ ø¿∑˘>" + e.getMessage());
+			System.exit(-1);
+		}
+	}
+
+	public void startServer() {
+		Socket clientSocket = null;
+		try {
+			serverSocket = new ServerSocket(port);
+			t_display.append("º≠πˆ∞° Ω√¿€µ«æ˙Ω¿¥œ¥Ÿ.\n");
+			users = new Vector<ClientHandler>();
+			while (acceptThread == Thread.currentThread()) {
+				clientSocket = serverSocket.accept();
+				t_display.append("≈¨∂Û¿Ãæ∆Æ∞° ø¨∞·µ«æ˙Ω¿¥œ¥Ÿ.\n");
+				ClientHandler cHandler = new ClientHandler(clientSocket);
+
+				cHandler.start();
+				users.add(cHandler);
+
+			}
+		} catch (SocketException e) {
+			printDisplay("º≠πˆ º“ƒπ ¡æ∑·");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (clientSocket != null)
+					clientSocket.close();
+				if (serverSocket != null)
+					serverSocket.close();
+			} catch (IOException e) {
+				System.err.println("º≠πˆ ¥›±‚ ø¿∑˘> " + e.getMessage());
+				System.exit(-1);
+			}
+		}
+	}
+
+	private class ClientHandler extends Thread {
+		private Socket clientSocket;
+		private ObjectOutputStream out;
+		private ObjectInputStream in;
+		private BufferedInputStream Bin;
+		private BufferedOutputStream Bout;
+		private ServerHandler currentRoom;
+
+		public ClientHandler(Socket clientSocket) {
+			this.clientSocket = clientSocket;
+		}
+
+		ObjectMsg chatMsg;
+
+		void receiveMessages(Socket cs) {
+			try {
+				Bin = new BufferedInputStream(cs.getInputStream());
+				Bout = new BufferedOutputStream(cs.getOutputStream());
+				in = new ObjectInputStream(Bin);
+				out = new ObjectOutputStream(Bout);
+				while ((chatMsg = (ObjectMsg) (in).readObject()) != null) {
+					if (ObjectMsg.MODE_LOGIN == chatMsg.mode) {
+						printDisplay(chatMsg.userName + "ø¨∞· º∫∞¯\n");
+						for (int i = 0; i < users.size(); i++) {
+							broadcasting(new ObjectMsg(ObjectMsg.MODE_LOGIN, users.get(i).chatMsg.userName));
+						}
+						//ºˆ¡§ « ø‰ πÊ¿Ã ¿÷¿∏∏È πÊ ª˝º∫¿Ã¿¸ø° ¡¢º”«— ¿Ø¿˙µµ πÊ¿Ã ∏∏µÈæÓ¡Ææﬂ «‘
+						if (currentRoom != null) {
+							for (int i = 0; i < rooms.size(); i++) {
+								broadcasting(new ObjectMsg(ObjectMsg.MODE_CREATE_ROOM, "", "", null, users.size(),rooms.size(), rooms.get(i).roomName));
+							}
+						}
+					} else if (ObjectMsg.MODE_LOGOUT == chatMsg.mode) {
+						printDisplay(chatMsg.userName + "ø¨∞· «ÿ¡¶\n");
+						broadcasting(chatMsg);
+						break;
+					} else if (ObjectMsg.MODE_TX_STRING == chatMsg.mode) {
+						printDisplay(chatMsg.userName + ": " + chatMsg.message);
+						roombroadcasting(chatMsg);
+					} else if (ObjectMsg.MODE_TX_FILE == chatMsg.mode) {
+						long size = chatMsg.fileSize;
+						String filename = chatMsg.message;
+						File file = new File(filename);
+						sendMessage(new ObjectMsg(ObjectMsg.MODE_TX_FILE, chatMsg.userName, file.getName(), null, size, 0, null));
+						try {
+							byte[] buffer = new byte[1024];
+							int nRead = 0;
+							while (size > 0) {
+								nRead = Bin.read(buffer);
+								size -= nRead;
+								Bout.write(buffer, 0, nRead);
+							}
+							printDisplay(chatMsg.userName + ": ∆ƒ¿œ ¿¸º€ øœ∑· >> " + filename);
+							//«ÿ¥Á ∆ƒ¿œ ¿¸º€¿Ã ≥°≥µ¿Ω¿ª ∫∏≥ø
+							sendMessage(new ObjectMsg(ObjectMsg.MODE_TX_FILE, chatMsg.userName, file.getName(), null, -1, 0, null));
+							// ¥Ÿ∏• ≈¨∂Û¿Ãæ∆Æø°∞‘ ∆ƒ¿œ ∏µÂ ¿¸º€
+							//broadcastingOthers(chatMsg, filename);
+							// ∆ƒ¿œ ≥ªøÎ¿ª ¥Ÿ∏• ≈¨∂Û¿Ãæ∆Æø°∞‘ ¿¸¥ﬁ
+							// redirectStream(bis, filesize);
+						} catch (FileNotFoundException e1) {
+							printDisplay(">> ∆ƒ¿œ¿Ã ¡∏¿Á«œ¡ˆ æ Ω¿¥œ¥Ÿ:" + e1.getMessage());
+							return;
+						} catch (IOException e1) {
+							printDisplay(">> ∆ƒ¿œ ¿¸º€ ¡ﬂ ø¿∑˘ πﬂª˝:" + e1.getMessage());
+							return;
+						}
+					}
+
+					else if (ObjectMsg.MODE_TX_IMAGE == chatMsg.mode) {
+						printDisplay(chatMsg.userName + ": " + chatMsg.Image);
+						roombroadcasting(chatMsg);
+					} else if (ObjectMsg.MODE_CREATE_ROOM == chatMsg.mode) {
+						printDisplay(chatMsg.userName + "∞°" + chatMsg.room_name + "πÊ ª˝º∫");
+						ServerHandler sh = new ServerHandler(chatMsg.room_name);
+						rooms.add(sh);
+						ObjectMsg roomInfo = new ObjectMsg(ObjectMsg.MODE_CREATE_ROOM, chatMsg.userName, "", null, users.size(), rooms.size(), chatMsg.room_name);
+						broadcasting(roomInfo);
+						// Room List
+					} else if (ObjectMsg.MODE_JOIN_ROOM == chatMsg.mode) {
+						printDisplay(chatMsg.userName + "∞°" + chatMsg.room_name + "πÊ ¡¢º”");
+						ServerHandler sh = new ServerHandler(chatMsg.room_name);
+						if (this.currentRoom != null) { // «ˆ¿Á πÊ¿Ã null¿Ã æ∆¥œ∂Û∏È, ¡Ô, æÓ∂≤ πÊø° µÈæÓøÕ ¿÷¥Ÿ∏È
+							this.currentRoom.quitRoom(this); // «ˆ¿Á πÊø°º≠ ≥™∞°∞‘ √≥∏Æ«’¥œ¥Ÿ.
+						}
+
+						for (ServerHandler room : rooms) {
+							if (room.getRoomName().equals(chatMsg.room_name)) {
+								room.addRoom(this);
+								this.currentRoom = room; // ø©±‚ø° currentRoom¿ª º≥¡§«ÿ¡›¥œ¥Ÿ.
+								break;
+							}
+						}
+						ObjectMsg roomInfo = new ObjectMsg(ObjectMsg.MODE_JOIN_ROOM, chatMsg.userName, "", null,
+								users.size(), rooms.size(), chatMsg.room_name);
+						broadcasting(roomInfo);
+					} else if (ObjectMsg.MODE_OUT_ROOM == chatMsg.mode) {
+						printDisplay(chatMsg.userName + "∞°" + chatMsg.room_name + "πÊ ¡¢º”¡æ∑·");
+						ServerHandler sh = new ServerHandler(chatMsg.room_name);
+						sh.quitRoom(this);
+					}
+				}
+				users.removeElement(this);
+			} catch (IOException e) {
+				printDisplay("º≠πˆ ¿–±‚ ø¿∑˘>" + e.getMessage());
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				try {
+					cs.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+
+		void sendMessage(ObjectMsg cmsg) {
+			try {
+				out.writeObject(cmsg);
+				out.flush();
+			} catch (IOException e) {
+				System.err.println("≈¨∂Û¿Ãæ∆Æ ¿œπ› ¿¸º€ ø¿∑˘>" + e.getMessage());
+			}
+		}
+
+		void broadcasting(ObjectMsg cmsg) {
+			for (int i = 0; i < users.size(); i++) {
+				users.get(i).sendMessage(cmsg);
+			}
+		}
+
+		void roombroadcasting(ObjectMsg cmsg) {
+			if (currentRoom != null) {
+				currentRoom.sendMessage(cmsg);
+			}
+		}
+
+		void broadcastingOthers(ObjectMsg cmsg, String filename) {
+			for (int i = 0; i < users.size(); i++) {
+				ClientHandler currentClient = null;
+				if (users.get(i) != currentClient) {
+					users.get(i).sendMessage(new ObjectMsg(ObjectMsg.MODE_TX_FILE, cmsg.userName, filename));
+				}
+			}
+		}
+
+		void redirectStream(BufferedInputStream bis, long filesize) throws IOException {
+			byte[] buffer = new byte[1024];
+			int len;
+			long total = 0;
+
+			while ((len = bis.read(buffer)) > 0 && total < filesize) {
+				Bout.write(buffer, 0, len);
+				Bout.flush();
+				total += len;
+			}
+		}
+
+		@Override
+		public void run() {
+			receiveMessages(clientSocket);
+		}
+
+	}
+
+	private class ServerHandler {
+
+		private Vector<ClientHandler> ch;
+		private String roomName;
+
+		public ServerHandler(String roomName) {
+			this.roomName = roomName;
+			this.ch = new Vector<ClientHandler>();
+		}
+
+		public String getRoomName() {
+			return this.roomName;
+		}
+
+		public void addRoom(ClientHandler client) {
+			this.ch.add(client);
+		}
+
+		void quitRoom(ClientHandler client) {
+			int index = this.ch.indexOf(client);
+			if (index != -1) {
+				this.ch.remove(index);
+			}
+		}
+
+		void sendMessage(ObjectMsg cmsg) {
+			for (int i = 0; i < ch.size(); i++) {
+				try {
+					ch.get(i).out.writeObject(cmsg);
+					ch.get(i).out.flush();
+				} catch (IOException e) {
+					System.err.println("≈¨∂Û¿Ãæ∆Æ ¿œπ› ¿¸º€ ø¿∑˘>" + e.getMessage());
+				}
+			}
+		}
+	}
+
+	private void printDisplay(String msg) {
+		t_display.append(msg + "\n");
+		t_display.setCaretPosition(t_display.getDocument().getLength());
+	}
+
+	public static void main(String[] args) {
+		int port = 50321;
+
+		Test_Server server = new Test_Server(port);
+		// server.startServer();
+	}
 }

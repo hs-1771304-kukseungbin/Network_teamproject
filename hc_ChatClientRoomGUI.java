@@ -96,7 +96,7 @@ public class hc_ChatClientRoomGUI extends hc_ChatClient{
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				//접속한 방 나가기 모드를 서버에 전송
-				send(new ObjectMsg(ObjectMsg.MODE_OUT_ROOM, mainMenu.userId));
+				send(new ObjectMsg(ObjectMsg.MODE_OUT_ROOM, mainMenu.userId, null, null, 0, 0, l_title.getText()));
 				roomChat.dispose();
 				if(selectImageGUI != null) selectImageGUI.dispose();
 				roomList.setVisible(true);
@@ -161,15 +161,16 @@ public class hc_ChatClientRoomGUI extends hc_ChatClient{
 				filename = chooser.getSelectedFile().getAbsolutePath().strip();
 				if(filename.isEmpty()) return;
 				File file = new File(filename);
-				send(new ObjectMsg(ObjectMsg.MODE_TX_FILE, mainMenu.userId, filename));
+				send(new ObjectMsg(ObjectMsg.MODE_TX_FILE, mainMenu.userId, filename, null, file.length(), 0, null));
 				BufferedInputStream bis = null;
 				try {
 					bis = new BufferedInputStream(new FileInputStream(file));
 					byte[] buffer = new byte[1024];
-					int nRead;
+					int nRead = 0;
 					while((nRead = bis.read(buffer)) != -1) {
 						Bos.write(buffer, 0, nRead);
 					}
+					bis.close();
 					Bos.flush();
 				} catch (FileNotFoundException e1) {
 					System.out.println(">> 파일이 존재하지 않습니다:" + e1.getMessage() + "\n");
@@ -177,13 +178,6 @@ public class hc_ChatClientRoomGUI extends hc_ChatClient{
 				} catch (IOException e1) {
 					System.out.println(">> 파일을 읽을 수 없습니다:" + e1.getMessage() + "\n");
 					return;
-				} finally {
-					try {
-						if (bis != null) bis.close();
-					} catch (IOException e1) {
-						System.out.println(">> 파일을 닫을 수 없습니다: " + e1.getMessage());
-						return;
-					}
 				}
 			}
 			
@@ -218,7 +212,6 @@ public class hc_ChatClientRoomGUI extends hc_ChatClient{
 	            t_display.setParagraphAttributes(attrs, true);
 	            document.insertString(len, msg.message + " :" + msg.userName + "\n", null);
 	        }
-
 	        t_display.setCaretPosition(document.getLength());
 	    } catch (BadLocationException e) {
 	        e.printStackTrace();

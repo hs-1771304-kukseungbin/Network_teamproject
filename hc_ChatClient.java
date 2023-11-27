@@ -30,7 +30,7 @@ public class hc_ChatClient extends JFrame{
 	
 	public hc_ChatClient() {
 		this.serverAddress = "localhost";
-		this.serverPort = 54321;
+		this.serverPort = 50321;
 	}
 	
 	//서버 연결 
@@ -73,23 +73,26 @@ public class hc_ChatClient extends JFrame{
 		try {
 			BufferedInputStream Bin = new BufferedInputStream(socket.getInputStream());
 			ObjectInputStream in = new ObjectInputStream(Bin);
-			
+			File file = null;
+			FileOutputStream fo;
 			ObjectMsg objectMsg;
 			while((objectMsg=(ObjectMsg)in.readObject()) != null) {
 				if(ObjectMsg.MODE_TX_STRING == objectMsg.mode){
 					roomChat.printDisplay(objectMsg);
 				}
 				else if(ObjectMsg.MODE_TX_FILE == objectMsg.mode) {
+					long size = objectMsg.fileSize;
 					String fileName = objectMsg.message;
-					File file = new File(fileName);
-					FileOutputStream fo = new FileOutputStream(file);
-					
 					byte[] buffer = new byte[1024];
-					int nRead;
-					while((nRead=Bin.read(buffer)) != -1) {
+					int nRead = 0;
+					file = new File(fileName);
+					fo = new FileOutputStream(file);
+					while (size > 0) {
+						nRead = Bin.read(buffer);
+						size -= nRead;
 						fo.write(buffer, 0, nRead);
+						System.out.println("파일사이즈 : " + size + "\n");
 					}
-					
 					fo.close();
 					roomChat.printDisplay(objectMsg);
 				}
