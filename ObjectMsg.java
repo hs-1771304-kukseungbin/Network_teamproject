@@ -8,7 +8,7 @@ public class ObjectMsg implements Serializable{
 	String userName;
 	String message;
 	ImageIcon Image;
-	long total_user;
+	long fileSize;
 	long total_room;
 	String room_name;
 	
@@ -22,12 +22,12 @@ public class ObjectMsg implements Serializable{
 	public final static int MODE_TX_FILE = 0x20;
 	public final static int MODE_TX_IMAGE = 0x40;
 	
-	public ObjectMsg(int mode, String id, String message, ImageIcon Image, long size, long room, String room_Name) {
+	public ObjectMsg(int mode, String id, String message, ImageIcon Image, long filesize, long room, String room_Name) {
 		this.mode = mode;
 		this.Image = Image;
 		this.message = message;
 		this.userName = id;
-		this.total_user = size;
+		this.fileSize = filesize;
 		this.total_room = room;
 		this.room_name = room_Name;
 	}
