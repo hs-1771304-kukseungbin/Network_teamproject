@@ -78,7 +78,7 @@ public class hc_ChatServer extends JFrame {
 
 	private JPanel createControlPanel() {
 		JPanel p = new JPanel(new GridLayout(0, 3));
-		b_connect = new JButton("¼­¹ö ½ÃÀÛ");
+		b_connect = new JButton("ì„œë²„ ì‹œì‘");
 		b_connect.addActionListener(new ActionListener() {
 
 			@Override
@@ -102,7 +102,7 @@ public class hc_ChatServer extends JFrame {
 
 		});
 
-		b_disconnect = new JButton("¼­¹ö Á¾·á");
+		b_disconnect = new JButton("ì„œë²„ ì¢…ë£Œ");
 		b_disconnect.addActionListener(new ActionListener() {
 
 			@Override
@@ -112,7 +112,7 @@ public class hc_ChatServer extends JFrame {
 
 		});
 
-		b_exit = new JButton("Á¾·áÇÏ±â");
+		b_exit = new JButton("ì¢…ë£Œí•˜ê¸°");
 		b_exit.addActionListener(new ActionListener() {
 
 			@Override
@@ -138,7 +138,7 @@ public class hc_ChatServer extends JFrame {
 			b_disconnect.setEnabled(false);
 			b_exit.setEnabled(true);
 		} catch (IOException e) {
-			System.err.println("¼­¹ö ¼ÒÄ¹ ´İ±â ¿À·ù>" + e.getMessage());
+			System.err.println("ì„œë²„ ì†Œìº£ ë‹«ê¸° ì˜¤ë¥˜>" + e.getMessage());
 			System.exit(-1);
 		}
 	}
@@ -147,11 +147,11 @@ public class hc_ChatServer extends JFrame {
 		Socket clientSocket = null;
 		try {
 			serverSocket = new ServerSocket(port);
-			t_display.append("¼­¹ö°¡ ½ÃÀÛµÇ¾ú½À´Ï´Ù.\n");
+			t_display.append("ì„œë²„ê°€ ì‹œì‘ë˜ì—ˆìŠµë‹ˆë‹¤.\n");
 			users = new Vector<ClientHandler>();
 			while (acceptThread == Thread.currentThread()) {
 				clientSocket = serverSocket.accept();
-				t_display.append("Å¬¶óÀÌ¾ğÆ®°¡ ¿¬°áµÇ¾ú½À´Ï´Ù.\n");
+				t_display.append("í´ë¼ì´ì–¸íŠ¸ê°€ ì—°ê²°ë˜ì—ˆìŠµë‹ˆë‹¤.\n");
 				ClientHandler cHandler = new ClientHandler(clientSocket);
 
 				cHandler.start();
@@ -159,7 +159,7 @@ public class hc_ChatServer extends JFrame {
 
 			}
 		} catch (SocketException e) {
-			printDisplay("¼­¹ö ¼ÒÄ¹ Á¾·á");
+			printDisplay("ì„œë²„ ì†Œìº£ ì¢…ë£Œ");
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -169,7 +169,7 @@ public class hc_ChatServer extends JFrame {
 				if (serverSocket != null)
 					serverSocket.close();
 			} catch (IOException e) {
-				System.err.println("¼­¹ö ´İ±â ¿À·ù> " + e.getMessage());
+				System.err.println("ì„œë²„ ë‹«ê¸° ì˜¤ë¥˜> " + e.getMessage());
 				System.exit(-1);
 			}
 		}
@@ -197,19 +197,25 @@ public class hc_ChatServer extends JFrame {
 				out = new ObjectOutputStream(Bout);
 				while ((chatMsg = (ObjectMsg) (in).readObject()) != null) {
 					if (ObjectMsg.MODE_LOGIN == chatMsg.mode) {
-						printDisplay(chatMsg.userName + "¿¬°á ¼º°ø\n");
-						for(int i = 0; i<users.size(); i++) {
-							broadcasting(users.get(i).chatMsg);
-						}
-						broadcasting(chatMsg);
-						// ¼öÁ¤ ÇÊ¿ä ¹æÀÌ ÀÖÀ¸¸é ¹æ »ı¼ºÀÌÀü¿¡ Á¢¼ÓÇÑ À¯Àúµµ ¹æÀÌ ¸¸µé¾îÁ®¾ß ÇÔ
-						if (currentRoom != null) {
-							for (int i = 0; i < rooms.size(); i++) {
-								broadcasting(new ObjectMsg(ObjectMsg.MODE_CREATE_ROOM, "", "", null, users.size(), rooms.size(), rooms.get(i).roomName));
+						if(userNameCheck(chatMsg.userName)) {
+							
+							printDisplay(chatMsg.userName + "ì—°ê²° ì„±ê³µ\n");
+							for(int i = 0; i<users.size(); i++) {
+								broadcasting(users.get(i).chatMsg);
+							}
+							broadcasting(chatMsg);
+							// ìˆ˜ì • í•„ìš” ë°©ì´ ìˆìœ¼ë©´ ë°© ìƒì„±ì´ì „ì— ì ‘ì†í•œ ìœ ì €ë„ ë°©ì´ ë§Œë“¤ì–´ì ¸ì•¼ í•¨
+							if (currentRoom != null) {
+								for (int i = 0; i < rooms.size(); i++) {
+									broadcasting(new ObjectMsg(ObjectMsg.MODE_CREATE_ROOM, "", "", null, users.size(), rooms.size(), rooms.get(i).roomName));
+								}
 							}
 						}
+						else {
+							sendMessage(new ObjectMsg(ObjectMsg.MODE_ID_ERROR, chatMsg.userName));
+						}
 					} else if (ObjectMsg.MODE_LOGOUT == chatMsg.mode) {
-						printDisplay(chatMsg.userName + "¿¬°á ÇØÁ¦\n");
+						printDisplay(chatMsg.userName + "ì—°ê²° í•´ì œ\n");
 						broadcasting(chatMsg);
 						break;
 					} else if (ObjectMsg.MODE_TX_STRING == chatMsg.mode) {
@@ -230,17 +236,17 @@ public class hc_ChatServer extends JFrame {
 								Bout.write(buffer, 0, nRead);
 							}
 							Bout.flush();
-							printDisplay(chatMsg.userName + ": ÆÄÀÏ Àü¼Û ¿Ï·á >> " + filename);
-							// ÇØ´ç ÆÄÀÏ Àü¼ÛÀÌ ³¡³µÀ½À» º¸³¿
-							// ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡°Ô ÆÄÀÏ ¸ğµå Àü¼Û
+							printDisplay(chatMsg.userName + ": íŒŒì¼ ì „ì†¡ ì™„ë£Œ >> " + filename);
+							// í•´ë‹¹ íŒŒì¼ ì „ì†¡ì´ ëë‚¬ìŒì„ ë³´ëƒ„
+							// ë‹¤ë¥¸ í´ë¼ì´ì–¸íŠ¸ì—ê²Œ íŒŒì¼ ëª¨ë“œ ì „ì†¡
 							// broadcastingOthers(chatMsg, filename);
-							// ÆÄÀÏ ³»¿ëÀ» ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡°Ô Àü´Ş
+							// íŒŒì¼ ë‚´ìš©ì„ ë‹¤ë¥¸ í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ì „ë‹¬
 							// redirectStream(bis, filesize);
 						} catch (FileNotFoundException e1) {
-							printDisplay(">> ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù:" + e1.getMessage());
+							printDisplay(">> íŒŒì¼ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤:" + e1.getMessage());
 							return;
 						} catch (IOException e1) {
-							printDisplay(">> ÆÄÀÏ Àü¼Û Áß ¿À·ù ¹ß»ı:" + e1.getMessage());
+							printDisplay(">> íŒŒì¼ ì „ì†¡ ì¤‘ ì˜¤ë¥˜ ë°œìƒ:" + e1.getMessage());
 							return;
 						}
 					}
@@ -249,7 +255,7 @@ public class hc_ChatServer extends JFrame {
 						printDisplay(chatMsg.userName + ": " + chatMsg.Image);
 						roombroadcasting(chatMsg);
 					} else if (ObjectMsg.MODE_CREATE_ROOM == chatMsg.mode) {
-						printDisplay(chatMsg.userName + "°¡" + chatMsg.room_name + "¹æ »ı¼º");
+						printDisplay(chatMsg.userName + "ê°€" + chatMsg.room_name + "ë°© ìƒì„±");
 						ServerHandler sh = new ServerHandler(chatMsg.room_name);
 						rooms.add(sh);
 						ObjectMsg roomInfo = new ObjectMsg(ObjectMsg.MODE_CREATE_ROOM, chatMsg.userName, "", null,
@@ -257,16 +263,16 @@ public class hc_ChatServer extends JFrame {
 						broadcasting(roomInfo);
 						// Room List
 					} else if (ObjectMsg.MODE_JOIN_ROOM == chatMsg.mode) {
-						printDisplay(chatMsg.userName + "°¡" + chatMsg.room_name + "¹æ Á¢¼Ó");
+						printDisplay(chatMsg.userName + "ê°€" + chatMsg.room_name + "ë°© ì ‘ì†");
 						ServerHandler sh = new ServerHandler(chatMsg.room_name);
-						if (this.currentRoom != null) { // ÇöÀç ¹æÀÌ nullÀÌ ¾Æ´Ï¶ó¸é, Áï, ¾î¶² ¹æ¿¡ µé¾î¿Í ÀÖ´Ù¸é
-							this.currentRoom.quitRoom(this); // ÇöÀç ¹æ¿¡¼­ ³ª°¡°Ô Ã³¸®ÇÕ´Ï´Ù.
+						if (this.currentRoom != null) { // í˜„ì¬ ë°©ì´ nullì´ ì•„ë‹ˆë¼ë©´, ì¦‰, ì–´ë–¤ ë°©ì— ë“¤ì–´ì™€ ìˆë‹¤ë©´
+							this.currentRoom.quitRoom(this); // í˜„ì¬ ë°©ì—ì„œ ë‚˜ê°€ê²Œ ì²˜ë¦¬í•©ë‹ˆë‹¤.
 						}
 
 						for (ServerHandler room : rooms) {
 							if (room.getRoomName().equals(chatMsg.room_name)) {
 								room.addRoom(this);
-								this.currentRoom = room; // ¿©±â¿¡ currentRoomÀ» ¼³Á¤ÇØÁİ´Ï´Ù.
+								this.currentRoom = room; // ì—¬ê¸°ì— currentRoomì„ ì„¤ì •í•´ì¤ë‹ˆë‹¤.
 								break;
 							}
 						}
@@ -274,14 +280,14 @@ public class hc_ChatServer extends JFrame {
 								users.size(), rooms.size(), chatMsg.room_name);
 						broadcasting(roomInfo);
 					} else if (ObjectMsg.MODE_OUT_ROOM == chatMsg.mode) {
-						printDisplay(chatMsg.userName + "°¡" + chatMsg.room_name + "¹æ Á¢¼ÓÁ¾·á");
+						printDisplay(chatMsg.userName + "ê°€" + chatMsg.room_name + "ë°© ì ‘ì†ì¢…ë£Œ");
 						ServerHandler sh = new ServerHandler(chatMsg.room_name);
 						sh.quitRoom(this);
 					}
 				}
 				users.removeElement(this);
 			} catch (IOException e) {
-				printDisplay("¼­¹ö ÀĞ±â ¿À·ù>" + e.getMessage());
+				printDisplay("ì„œë²„ ì½ê¸° ì˜¤ë¥˜>" + e.getMessage());
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -300,7 +306,7 @@ public class hc_ChatServer extends JFrame {
 				out.writeObject(cmsg);
 				out.flush();
 			} catch (IOException e) {
-				System.err.println("Å¬¶óÀÌ¾ğÆ® ÀÏ¹İ Àü¼Û ¿À·ù>" + e.getMessage());
+				System.err.println("í´ë¼ì´ì–¸íŠ¸ ì¼ë°˜ ì „ì†¡ ì˜¤ë¥˜>" + e.getMessage());
 			}
 		}
 
@@ -329,6 +335,15 @@ public class hc_ChatServer extends JFrame {
 					}
 				}
 			}
+		}
+		
+		private boolean userNameCheck(String userName) {
+		    for (ClientHandler user : users) {
+		        if (user.chatMsg != null && user.chatMsg.userName.equals(userName)) {
+		            return false; // ì‚¬ìš©ì ì´ë¦„ì´ ì´ë¯¸ ì¡´ì¬í•¨
+		        }
+		    }
+		    return true; // ì‚¬ìš©ì ì´ë¦„ì´ ì¤‘ë³µë˜ì§€ ì•ŠìŒ
 		}
 
 		@Override
@@ -369,7 +384,7 @@ public class hc_ChatServer extends JFrame {
 					ch.get(i).out.writeObject(cmsg);
 					ch.get(i).out.flush();
 				} catch (IOException e) {
-					System.err.println("Å¬¶óÀÌ¾ğÆ® ÀÏ¹İ Àü¼Û ¿À·ù>" + e.getMessage());
+					System.err.println("í´ë¼ì´ì–¸íŠ¸ ì¼ë°˜ ì „ì†¡ ì˜¤ë¥˜>" + e.getMessage());
 				}
 			}
 		}
