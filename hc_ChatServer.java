@@ -198,6 +198,9 @@ public class hc_ChatServer extends JFrame {
 				while ((chatMsg = (ObjectMsg) (in).readObject()) != null) {
 					if (ObjectMsg.MODE_LOGIN == chatMsg.mode) {
 						printDisplay(chatMsg.userName + "연결 성공\n");
+						for(int i = 0; i<users.size(); i++) {
+							broadcasting(users.get(i).chatMsg);
+						}
 						broadcasting(chatMsg);
 						// 수정 필요 방이 있으면 방 생성이전에 접속한 유저도 방이 만들어져야 함
 						if (currentRoom != null) {
@@ -380,7 +383,6 @@ public class hc_ChatServer extends JFrame {
 	public static void main(String[] args) {
 		int port = 50321;
 
-		Test_Server server = new Test_Server(port);
-		// server.startServer();
+		hc_ChatServer server = new hc_ChatServer(port);
 	}
 }
