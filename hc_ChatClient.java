@@ -13,6 +13,7 @@ import java.net.UnknownHostException;
 import java.util.Vector;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 public class hc_ChatClient extends JFrame{
 	
@@ -109,7 +110,11 @@ public class hc_ChatClient extends JFrame{
 					roomList.updateRoomAdd(objectMsg.room_name);
 				}
 				else if(ObjectMsg.MODE_ID_ERROR == objectMsg.mode) {
-					//아이디 중복 체크
+					//서버에서 관리하는 유저정보중에 중복이되어 아이디중복문제모드로 왔기에 연결을 끊고 해당 유저 이름은 중복된 아이디임을 알려주는 기능.
+					roomList.dispose();
+					mainMenu.setVisible(true);
+					mainMenu.disconnect();
+					JOptionPane.showMessageDialog(null, "아이디가 중복되었습니다. 다시 입력해주세요.");
 				}
 			}
 		} catch (IOException e) {

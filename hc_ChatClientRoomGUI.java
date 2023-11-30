@@ -131,7 +131,6 @@ public class hc_ChatClientRoomGUI extends hc_ChatClient{
 				Point location = roomChat.getLocation();
 		        int x = (int) location.getX();
 		        int y = (int) location.getY();
-				ImageIcon image = new ImageIcon();
 				selectImageGUI = new SelectImoticon(x,y);
 			}
 		});
@@ -257,10 +256,9 @@ public class hc_ChatClientRoomGUI extends hc_ChatClient{
 			this.y = y;
 			setSize(200,280);
 			setLocation(x, y+500);
-			
+			buildGUI();
 			setUndecorated(true);
 			setVisible(true);
-			buildGUI();
 		}
 		
 		private void buildGUI() {
