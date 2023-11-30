@@ -227,8 +227,10 @@ public class hc_ChatServer extends JFrame {
 						long size = chatMsg.fileSize;
 						String filename = chatMsg.message;
 						File file = new File(filename);
-						roombroadcasting(new ObjectMsg(ObjectMsg.MODE_TX_FILE, chatMsg.userName, file.getName(), null, size, 0, null));
+						filebroadcasting(this, new ObjectMsg(ObjectMsg.MODE_TX_FILE, chatMsg.userName, file.getName(), null, size, 0, null));
 						redirectStream(size);
+						sendMessage(new ObjectMsg(ObjectMsg.MODE_TX_STRING,chatMsg.userName,file.getName() + "전송선공"));
+						printDisplay(chatMsg.userName + ": " + file.getName() + " 파일 전송 성공");
 					}
 
 					else if (ObjectMsg.MODE_TX_IMAGE == chatMsg.mode) {
@@ -300,6 +302,16 @@ public class hc_ChatServer extends JFrame {
 				currentRoom.sendMessage(cmsg);
 			}
 		}
+		
+		void filebroadcasting(ClientHandler sender, ObjectMsg cmsg) {
+	         if (currentRoom != null) {
+	              for(ClientHandler client : currentRoom.ch) {
+	                  if(client != sender) {
+	                      client.sendMessage(cmsg);
+	                  }
+	              }
+	          }
+	      }
 
 		void redirectStream(long size) throws IOException {
 			for (int i = 0; i < users.size(); i++) {
@@ -308,7 +320,6 @@ public class hc_ChatServer extends JFrame {
 					int nRead = 0;
 					while (size > 0) {
 						nRead = Bin.read(buffer);
-						System.out.println(users.get(i).chatMsg.userName + nRead);
 						size -= nRead;
 						users.get(i).Bout.write(buffer, 0, nRead);
 					}

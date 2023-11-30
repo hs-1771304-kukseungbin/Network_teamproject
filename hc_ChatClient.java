@@ -92,7 +92,6 @@ public class hc_ChatClient extends JFrame{
 						nRead = Bin.read(buffer);
 						size -= nRead;
 						fo.write(buffer, 0, nRead);
-						System.out.println("파일사이즈 : " + size + "\n");
 					}
 					fo.close();
 					roomChat.printDisplay(objectMsg);
